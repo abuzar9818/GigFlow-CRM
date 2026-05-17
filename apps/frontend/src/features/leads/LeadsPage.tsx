@@ -3,15 +3,18 @@ import { Button } from '../../components/ui/Button';
 import { LeadsTable } from './components/LeadsTable';
 import { LeadsFilters } from './components/LeadsFilters';
 import { CreateLeadModal, EditLeadModal, DeleteLeadModal } from './components/LeadModals';
+import { LeadKanbanBoard } from './components/LeadKanbanBoard';
 import { useLeads } from './hooks/useLeads';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
 import { CreateLeadInput, UpdateLeadInput, ILead, LeadStatus, LeadSource } from '@gigflow/shared';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { cn } from '../../utils/cn';
 
 export const LeadsPage = () => {
   const queryClient = useQueryClient();
+  const [viewMode, setViewMode] = useState<'pipeline' | 'table'>('pipeline');
   
   // Filter state
   const [search, setSearch] = useState('');
@@ -37,7 +40,16 @@ export const LeadsPage = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const { data, isLoading, isError } = useLeads({
+  const pipelineQuery = useLeads({
+    page: 1,
+    limit: 200,
+    status,
+    source,
+    search: debouncedSearch,
+    sort: 'latest',
+  });
+
+  const tableQuery = useLeads({
     page,
     limit,
     status,
@@ -46,8 +58,23 @@ export const LeadsPage = () => {
     sort,
   });
 
-  const leads = data?.data?.leads || [];
-  const pagination = data?.data?.pagination || { page: 1, totalPages: 1, total: 0 };
+  const activeQuery = viewMode === 'pipeline' ? pipelineQuery : tableQuery;
+  const leads = activeQuery.data?.data?.leads || [];
+  const pagination = tableQuery.data?.data?.pagination || { page: 1, totalPages: 1, total: 0 };
+
+  const updateCachedLeads = (updater: (lead: ILead) => ILead) => {
+    queryClient.setQueriesData({ queryKey: ['leads'] }, (oldData: any) => {
+      if (!oldData?.data?.leads) return oldData;
+
+      return {
+        ...oldData,
+        data: {
+          ...oldData.data,
+          leads: oldData.data.leads.map((lead: ILead) => updater(lead)),
+        },
+      };
+    });
+  };
 
   // Mutations
   const createMutation = useMutation({
@@ -74,6 +101,28 @@ export const LeadsPage = () => {
     },
   });
 
+  const moveMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: LeadStatus }) => api.patch(`/leads/${id}`, { status }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['leads'] });
+      const previousQueries = queryClient.getQueriesData({ queryKey: ['leads'] });
+
+      updateCachedLeads((lead) => (lead.id === id ? { ...lead, status } : lead));
+
+      return { previousQueries };
+    },
+    onError: (_error, _variables, context) => {
+      context?.previousQueries.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+      toast.error('Failed to move lead. Please try again.');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success('Lead status updated');
+    },
+  });
+
   const handleCreateSubmit = async (data: CreateLeadInput) => {
     await createMutation.mutateAsync(data);
   };
@@ -86,6 +135,10 @@ export const LeadsPage = () => {
     await deleteMutation.mutateAsync(id);
   };
 
+  const handleMoveLead = async (lead: ILead, nextStatus: LeadStatus) => {
+    await moveMutation.mutateAsync({ id: lead.id, status: nextStatus });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -93,14 +146,40 @@ export const LeadsPage = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage and track your potential clients.
+          <p className="mt-1 text-muted-foreground">
+            Manage, score, and move your pipeline with a modern Kanban flow.
           </p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>Add Lead</Button>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="inline-flex rounded-2xl border border-border bg-card p-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setViewMode('pipeline')}
+              className={cn(
+                'rounded-xl px-4 py-2 text-sm font-medium transition-colors',
+                viewMode === 'pipeline' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              Pipeline
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={cn(
+                'rounded-xl px-4 py-2 text-sm font-medium transition-colors',
+                viewMode === 'table' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              Table
+            </button>
+          </div>
+
+          <Button onClick={() => setIsCreateOpen(true)}>Add Lead</Button>
+        </div>
       </div>
 
       <LeadsFilters
@@ -114,44 +193,55 @@ export const LeadsPage = () => {
         onSortChange={setSort}
       />
 
-      {isError ? (
+      {activeQuery.isError ? (
         <div className="border border-border rounded-xl bg-card p-6 text-center text-red-500">
           Failed to load leads. Please try again.
         </div>
       ) : (
         <>
-          <LeadsTable
-            leads={leads}
-            isLoading={isLoading}
-            onEdit={(lead) => { setSelectedLead(lead); setIsEditOpen(true); }}
-            onDelete={(lead) => { setSelectedLead(lead); setIsDeleteOpen(true); }}
-          />
+          {viewMode === 'pipeline' ? (
+            <LeadKanbanBoard
+              leads={leads}
+              onEdit={(lead) => { setSelectedLead(lead); setIsEditOpen(true); }}
+              onMoveLead={handleMoveLead}
+              isUpdating={moveMutation.isPending}
+              isLoading={activeQuery.isLoading}
+            />
+          ) : (
+            <>
+              <LeadsTable
+                leads={leads}
+                isLoading={activeQuery.isLoading}
+                onEdit={(lead) => { setSelectedLead(lead); setIsEditOpen(true); }}
+                onDelete={(lead) => { setSelectedLead(lead); setIsDeleteOpen(true); }}
+              />
 
-          {/* Pagination UI */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <span className="text-sm text-muted-foreground">
-                Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-              </span>
-              <div className="flex space-x-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                  disabled={page === pagination.totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+              {pagination.totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+                  </span>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                      disabled={page === pagination.totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
