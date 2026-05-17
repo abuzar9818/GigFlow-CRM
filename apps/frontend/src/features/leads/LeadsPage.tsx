@@ -40,6 +40,15 @@ export const LeadsPage = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
+  const clearFilters = () => {
+    setSearch('');
+    setDebouncedSearch('');
+    setStatus('');
+    setSource('');
+    setSort('latest');
+    setPage(1);
+  };
+
   const pipelineQuery = useLeads({
     page: 1,
     limit: 200,
@@ -61,6 +70,8 @@ export const LeadsPage = () => {
   const activeQuery = viewMode === 'pipeline' ? pipelineQuery : tableQuery;
   const leads = activeQuery.data?.data?.leads || [];
   const pagination = tableQuery.data?.data?.pagination || { page: 1, totalPages: 1, total: 0 };
+
+  const hasFilters = Boolean(search || status || source || sort !== 'latest');
 
   const updateCachedLeads = (updater: (lead: ILead) => ILead) => {
     queryClient.setQueriesData({ queryKey: ['leads'] }, (oldData: any) => {
