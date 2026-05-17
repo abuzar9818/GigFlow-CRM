@@ -1,10 +1,18 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../store/useThemeStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { Moon, Sun, LayoutDashboard, Settings, Users, LogOut } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export const DashboardLayout = () => {
   const { isDarkMode, toggleTheme } = useThemeStore();
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row transition-colors duration-200">
@@ -35,7 +43,7 @@ export const DashboardLayout = () => {
         </nav>
 
         <div className="mt-auto pt-4 border-t border-border">
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted">
             <LogOut className="h-5 w-5 mr-3" />
             Logout
           </Button>
