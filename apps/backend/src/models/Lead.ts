@@ -41,7 +41,6 @@ const leadSchema = new Schema<ILeadDocument>(
 );
 
 // Indexes for performance
-leadSchema.index({ email: 1 });
 leadSchema.index({ status: 1 });
 leadSchema.index({ assignedTo: 1 });
 leadSchema.index({ createdAt: -1 });
