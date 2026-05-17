@@ -1,33 +1,42 @@
-import { useState } from 'react';
-import { API_PREFIX } from '@gigflow/shared';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
+import { AppRoutes } from './routes/AppRoutes';
+import { useEffect } from 'react';
+import { useThemeStore } from './store/useThemeStore';
+
+// Initialize React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
-  const [count, setCount] = useState(0);
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
+
+  // Initialize theme on mount
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl max-w-md w-full text-center space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          GigFlow CRM
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          MERN Monorepo Initialized
-        </p>
-        
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <p className="text-sm font-mono text-gray-600 dark:text-gray-300">
-            Shared Constant API_PREFIX: <span className="font-bold text-blue-500">{API_PREFIX}</span>
-          </p>
-        </div>
-
-        <button
-          onClick={() => setCount((c) => c + 1)}
-          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-        >
-          Count is {count}
-        </button>
-      </div>
-    </div>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+        <Toaster theme={isDarkMode ? 'dark' : 'light'} position="top-right" />
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 }
 
