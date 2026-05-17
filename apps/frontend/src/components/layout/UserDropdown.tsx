@@ -27,10 +27,10 @@ export const UserDropdown = () => {
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative flex-shrink-0" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md transition-colors"
+        className="flex items-center space-x-2 rounded-md p-2 transition-colors hover:bg-muted"
       >
         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
           {user?.name?.charAt(0) || 'U'}
@@ -45,34 +45,34 @@ export const UserDropdown = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-md shadow-lg py-1 z-50"
+            className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-xl border border-border bg-card py-1 shadow-2xl ring-1 ring-black/5"
           >
-            <div className="px-4 py-2 border-b border-border md:hidden">
+            <div className="border-b border-border px-4 py-3 md:hidden">
               <div className="font-medium">{user?.name || 'User'}</div>
               <div className="text-muted-foreground text-xs">{user?.email || 'user@example.com'}</div>
             </div>
             <button
               onClick={() => { setIsOpen(false); navigate('/profile'); }}
-              className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              className="flex w-full items-center px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"
             >
               <UserIcon className="mr-2 h-4 w-4" />
               Profile
             </button>
             <button
               onClick={() => { setIsOpen(false); navigate('/settings'); }}
-              className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              className="flex w-full items-center px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"
             >
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </button>
-            <div className="border-t border-border my-1"></div>
+            <div className="my-1 border-t border-border"></div>
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-2 text-sm text-red-500 hover:bg-muted transition-colors"
+              className="flex w-full items-center px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-muted"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
