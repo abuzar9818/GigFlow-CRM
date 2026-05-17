@@ -5,6 +5,8 @@ import { Button } from '../../../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { LeadActivityTimeline } from './LeadActivityTimeline';
+import { LeadScoreBadge } from './LeadScoreBadge';
 
 interface ModalProps {
   isOpen: boolean;
@@ -137,75 +139,93 @@ export const EditLeadModal = ({ isOpen, onClose, lead, onSubmit, isLoading }: Ed
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-card border border-border rounded-lg shadow-lg w-full max-w-md overflow-hidden"
+            className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden"
           >
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="text-lg font-semibold">Edit Lead</h3>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <div>
+                <h3 className="text-lg font-semibold">Edit Lead</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Update the lead and review its activity trail.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <LeadScoreBadge lead={lead} compact />
+                <Button variant="ghost" size="sm" onClick={onClose}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit(handleFormSubmit)} className="p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input
-                  {...register('name')}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                />
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
-              </div>
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 p-4 lg:p-6">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Name</label>
+                  <input
+                    {...register('name')}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  {...register('email')}
-                  type="email"
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                />
-                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-              </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Email</label>
+                  <input
+                    {...register('email')}
+                    type="email"
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  {...register('status')}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                >
-                  {Object.values(LEAD_STATUS).map((val) => (
-                    <option key={val} value={val}>{val}</option>
-                  ))}
-                </select>
-                {errors.status && <p className="text-xs text-red-500 mt-1">{errors.status.message}</p>}
-              </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Status</label>
+                    <select
+                      {...register('status')}
+                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      {Object.values(LEAD_STATUS).map((val) => (
+                        <option key={val} value={val}>{val}</option>
+                      ))}
+                    </select>
+                    {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status.message}</p>}
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Source</label>
-                <select
-                  {...register('source')}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                >
-                  {Object.values(LEAD_SOURCE).map((val) => (
-                    <option key={val} value={val}>{val}</option>
-                  ))}
-                </select>
-                {errors.source && <p className="text-xs text-red-500 mt-1">{errors.source.message}</p>}
-              </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Source</label>
+                    <select
+                      {...register('source')}
+                      className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      {Object.values(LEAD_SOURCE).map((val) => (
+                        <option key={val} value={val}>{val}</option>
+                      ))}
+                    </select>
+                    {errors.source && <p className="mt-1 text-xs text-red-500">{errors.source.message}</p>}
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
-                <textarea
-                  {...register('notes')}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-                  rows={3}
-                />
-              </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Notes</label>
+                  <textarea
+                    {...register('notes')}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    rows={4}
+                  />
+                </div>
 
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
-                <Button type="submit" isLoading={isLoading}>Save Changes</Button>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+                  <Button type="submit" isLoading={isLoading}>Save Changes</Button>
+                </div>
+              </form>
+
+              <div className="border-t border-border bg-muted/20 p-4 lg:border-l lg:border-t-0 lg:p-6">
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Activity timeline</h4>
+                  <p className="mt-1 text-sm text-muted-foreground">Created, updated, and status changes are tracked here.</p>
+                </div>
+                <LeadActivityTimeline activities={lead.activityTimeline} />
               </div>
-            </form>
+            </div>
           </motion.div>
         </div>
       )}
