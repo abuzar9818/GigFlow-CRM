@@ -4,12 +4,19 @@ import { logger } from './config/logger';
 import { connectDB } from './config/database';
 import mongoose from 'mongoose';
 
-let server: any;
+import http from 'http';
+import { initSocket } from './socket';
+
+let server: http.Server | null = null;
 
 connectDB().then(() => {
-  server = app.listen(env.port, () => {
+  server = http.createServer(app);
+  server.listen(env.port, () => {
     logger.info(`Listening to port ${env.port}`);
   });
+
+  // Initialize Socket.IO
+  initSocket(server);
 });
 
 const exitHandler = () => {

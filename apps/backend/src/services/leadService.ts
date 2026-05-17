@@ -39,6 +39,17 @@ export class LeadService {
     });
 
     const savedLead = await lead.save();
+
+    // Emit real-time event for lead creation
+    try {
+      const { emit } = await import('../socket');
+      const payload = decorateLead(savedLead);
+      emit('lead:created', payload);
+      if (performedBy) emit('user:' + performedBy + ':lead:created', payload, `user:${performedBy}`);
+    } catch (e) {
+      // ignore socket errors
+    }
+
     return decorateLead(savedLead) as ILeadDocument;
   }
 
@@ -131,6 +142,18 @@ export class LeadService {
     // Apply updates
     Object.assign(lead, data);
     const savedLead = await lead.save();
+
+    // Emit real-time event for lead update
+    try {
+      const { emit } = await import('../socket');
+      const payload = decorateLead(savedLead);
+      emit('lead:updated', payload);
+      if (performedBy) emit('user:' + performedBy + ':lead:updated', payload, `user:${performedBy}`);
+      if (savedLead.assignedTo) emit('user:' + String(savedLead.assignedTo) + ':lead:assigned', payload, `user:${String(savedLead.assignedTo)}`);
+    } catch (e) {
+      // ignore socket errors
+    }
+
     return decorateLead(savedLead) as ILeadDocument;
   }
 
