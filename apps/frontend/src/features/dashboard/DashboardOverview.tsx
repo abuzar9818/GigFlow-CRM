@@ -1,8 +1,14 @@
 import { Button } from '../../components/ui/Button';
+import { motion } from 'framer-motion';
 
 export const DashboardOverview = () => {
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
@@ -46,6 +52,6 @@ export const DashboardOverview = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
