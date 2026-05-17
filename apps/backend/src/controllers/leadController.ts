@@ -9,7 +9,7 @@ export const createLead = asyncHandler(async (req: Request, res: Response) => {
   const data = req.body as CreateLeadInput;
   const userId = req.user?.id; // Set by verifyToken middleware
 
-  const lead = await LeadService.createLead(data, userId!);
+  const lead = await LeadService.createLead(data, userId!, req.leadActivityEvents);
   
   res.status(httpStatus.CREATED).json(
     new ApiResponse(httpStatus.CREATED, lead, 'Lead created successfully')
@@ -47,7 +47,7 @@ export const updateLead = asyncHandler(async (req: Request, res: Response) => {
   const data = req.body as UpdateLeadInput;
   const userId = req.user?.id;
 
-  const lead = await LeadService.updateLead(id, data, userId!);
+  const lead = await LeadService.updateLead(id, data, userId!, req.leadActivityEvents);
   
   res.status(httpStatus.OK).json(
     new ApiResponse(httpStatus.OK, lead, 'Lead updated successfully')
