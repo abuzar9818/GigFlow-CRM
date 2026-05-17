@@ -191,6 +191,8 @@ export const LeadsPage = () => {
         onSourceChange={setSource}
         sort={sort}
         onSortChange={setSort}
+        onClearFilters={clearFilters}
+        hasActiveFilters={hasFilters}
       />
 
       {activeQuery.isError ? (

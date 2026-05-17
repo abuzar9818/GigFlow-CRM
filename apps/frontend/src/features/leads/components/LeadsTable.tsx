@@ -28,7 +28,7 @@ export const LeadsTable = ({ leads, isLoading, onEdit, onDelete }: LeadsTablePro
 
   if (isLoading) {
     return (
-      <div className="border border-border rounded-xl bg-card overflow-hidden">
+      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
         <div className="animate-pulse space-y-4 p-6">
           <div className="h-4 bg-muted rounded w-1/4"></div>
           <div className="space-y-2">
@@ -43,14 +43,14 @@ export const LeadsTable = ({ leads, isLoading, onEdit, onDelete }: LeadsTablePro
 
   if (leads.length === 0) {
     return (
-      <div className="border border-border rounded-xl bg-card p-12 text-center">
+      <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
         <p className="text-muted-foreground">No leads found. Create one or adjust your filters.</p>
       </div>
     );
   }
 
   return (
-    <div className="border border-border rounded-xl bg-card overflow-hidden">
+    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs uppercase bg-muted text-muted-foreground">
