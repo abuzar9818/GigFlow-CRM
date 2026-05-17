@@ -1,4 +1,5 @@
 import { LeadModel } from '../models/Lead';
+import { scoreLead } from '@gigflow/shared';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -12,7 +13,8 @@ const formatMonthLabel = (key: string) => {
 export class AnalyticsService {
   static async getOverview() {
     const leads = await LeadModel.find({})
-      .select('name email source status createdAt activityTimeline')
+      .select('name email source status createdAt activityTimeline notes assignedTo')
+      .populate('activityTimeline.performedBy', 'name email')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -24,6 +26,13 @@ export class AnalyticsService {
     const sourceMap = new Map<string, number>();
     const statusMap = new Map<string, number>();
     const monthlyMap = new Map<string, number>();
+    const qualityMap = new Map<'High' | 'Medium' | 'Low', number>([
+      ['High', 0],
+      ['Medium', 0],
+      ['Low', 0],
+    ]);
+
+    let scoreTotal = 0;
 
     const activityFeed = leads
       .flatMap((lead) =>
@@ -33,13 +42,17 @@ export class AnalyticsService {
           leadName: lead.name,
           action: activity.action,
           timestamp: activity.timestamp,
-          performedBy: String(activity.performedBy),
+          performedBy: activity.performedBy,
         }))
       )
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 6);
 
     leads.forEach((lead) => {
+      const leadScore = scoreLead(lead as any);
+      qualityMap.set(leadScore.priority, (qualityMap.get(leadScore.priority) || 0) + 1);
+      scoreTotal += leadScore.score;
+
       sourceMap.set(lead.source, (sourceMap.get(lead.source) || 0) + 1);
       statusMap.set(lead.status, (statusMap.get(lead.status) || 0) + 1);
 
@@ -55,6 +68,33 @@ export class AnalyticsService {
       value: monthlyMap.get(key) || 0,
     }));
 
+    const averageScore = totalLeads ? Math.round(scoreTotal / totalLeads) : 0;
+
+    const qualityBreakdown = {
+      averageScore,
+      highPriority: qualityMap.get('High') || 0,
+      mediumPriority: qualityMap.get('Medium') || 0,
+      lowPriority: qualityMap.get('Low') || 0,
+      distribution: [
+        { name: 'High', value: qualityMap.get('High') || 0 },
+        { name: 'Medium', value: qualityMap.get('Medium') || 0 },
+        { name: 'Low', value: qualityMap.get('Low') || 0 },
+      ],
+      topLeads: leads
+        .map((lead) => {
+          const leadScore = scoreLead(lead as any);
+          return {
+            id: String(lead._id),
+            name: lead.name,
+            email: lead.email,
+            score: leadScore.score,
+            priority: leadScore.priority,
+          };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5),
+    };
+
     return {
       stats: {
         totalLeads,
@@ -67,6 +107,7 @@ export class AnalyticsService {
         leadsByStatus: Array.from(statusMap.entries()).map(([name, value]) => ({ name, value })),
         monthlyGrowth,
       },
+      leadQuality: qualityBreakdown,
       recentActivities: activityFeed,
     };
   }

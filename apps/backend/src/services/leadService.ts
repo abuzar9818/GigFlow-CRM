@@ -3,9 +3,23 @@ import { CreateLeadInput, UpdateLeadInput, LeadStatus, LeadSource } from '@gigfl
 import { ApiError } from '../utils/ApiError';
 import { httpStatus } from '../constants/httpStatus';
 import mongoose from 'mongoose';
+import { scoreLead } from '@gigflow/shared';
+
+const decorateLead = (lead: any) => {
+  const plainLead = typeof lead?.toObject === 'function' ? lead.toObject() : lead;
+  const scoredLead = scoreLead(plainLead);
+
+  return {
+    ...plainLead,
+    score: scoredLead.score,
+    priority: scoredLead.priority,
+    scoreBreakdown: scoredLead.breakdown,
+    scoreExplanation: scoredLead.explanation,
+  };
+};
 
 export class LeadService {
-  static async createLead(data: CreateLeadInput, performedBy: string): Promise<ILeadDocument> {
+  static async createLead(data: CreateLeadInput, performedBy: string, activityEvents: any[] = []): Promise<ILeadDocument> {
     const existingLead = await LeadModel.findOne({ email: data.email });
     if (existingLead) {
       throw new ApiError(httpStatus.CONFLICT, 'Lead with this email already exists');
@@ -13,16 +27,19 @@ export class LeadService {
 
     const lead = new LeadModel({
       ...data,
-      activityTimeline: [
-        {
-          action: 'Lead Created',
-          performedBy: new mongoose.Types.ObjectId(performedBy),
-          timestamp: new Date(),
-        },
-      ],
+      activityTimeline: activityEvents.length
+        ? activityEvents
+        : [
+            {
+              action: 'Lead Created',
+              performedBy: new mongoose.Types.ObjectId(performedBy),
+              timestamp: new Date(),
+            },
+          ],
     });
 
-    return await lead.save();
+    const savedLead = await lead.save();
+    return decorateLead(savedLead) as ILeadDocument;
   }
 
   static async getLeads(queryParams: {
@@ -67,7 +84,7 @@ export class LeadService {
     ]);
 
     return {
-      leads,
+      leads: leads.map((lead) => decorateLead(lead)),
       pagination: {
         total,
         page,
@@ -85,10 +102,10 @@ export class LeadService {
     if (!lead) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found');
     }
-    return lead;
+    return decorateLead(lead) as ILeadDocument;
   }
 
-  static async updateLead(id: string, data: UpdateLeadInput, performedBy: string): Promise<ILeadDocument> {
+  static async updateLead(id: string, data: UpdateLeadInput, performedBy: string, activityEvents: any[] = []): Promise<ILeadDocument> {
     const lead = await LeadModel.findById(id);
     if (!lead) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found');
@@ -102,18 +119,19 @@ export class LeadService {
       }
     }
 
-    // Record activity if status changed
-    if (data.status && data.status !== lead.status) {
-      lead.activityTimeline.push({
-        action: `Status updated from ${lead.status} to ${data.status}`,
-        performedBy: new mongoose.Types.ObjectId(performedBy) as any,
-        timestamp: new Date(),
-      });
+    if (activityEvents.length) {
+      lead.activityTimeline.push(
+        ...activityEvents.map((event) => ({
+          ...event,
+          performedBy: new mongoose.Types.ObjectId(performedBy) as any,
+        }))
+      );
     }
 
     // Apply updates
     Object.assign(lead, data);
-    return await lead.save();
+    const savedLead = await lead.save();
+    return decorateLead(savedLead) as ILeadDocument;
   }
 
   static async deleteLead(id: string): Promise<void> {
