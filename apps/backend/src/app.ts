@@ -32,7 +32,7 @@ app.use(cookieParser());
 
 // enable cors
 app.use(cors({
-  origin: env.env === 'production' ? 'https://yourdomain.com' : 'http://localhost:5173',
+  origin: env.clientUrl,
   credentials: true,
 }));
 app.options('*', cors());
