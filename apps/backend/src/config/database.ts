@@ -6,10 +6,15 @@ export const connectDB = async (): Promise<void> => {
   try {
     const conn = await mongoose.connect(env.mongoose.url);
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error: any) {
+  } catch (error: unknown) {
+  if (error instanceof Error) {
     logger.error(`Error connecting to MongoDB: ${error.message}`);
-    process.exit(1); // Exit process with failure
+  } else {
+    logger.error('Unknown MongoDB connection error');
   }
+
+  process.exit(1);
+}
 };
 
 mongoose.connection.on('disconnected', () => {

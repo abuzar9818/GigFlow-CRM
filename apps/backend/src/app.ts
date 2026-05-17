@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import * as morgan from './middlewares/morgan';
 import { apiLimiter } from './middlewares/rateLimiter';
@@ -26,8 +27,14 @@ app.use(express.json());
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 
+// parse cookies
+app.use(cookieParser());
+
 // enable cors
-app.use(cors());
+app.use(cors({
+  origin: env.env === 'production' ? 'https://yourdomain.com' : 'http://localhost:5173',
+  credentials: true,
+}));
 app.options('*', cors());
 
 // limit repeated failed requests to endpoints
