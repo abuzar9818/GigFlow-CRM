@@ -81,7 +81,7 @@ export const DashboardLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 border-b border-border flex items-center justify-between px-4 md:px-6 bg-card shrink-0">
+        <header className="min-h-16 border-b border-border flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6 bg-card shrink-0">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" onClick={() => setIsSidebarOpen(true)} className="md:hidden">
               <Menu className="h-5 w-5" />
@@ -98,7 +98,7 @@ export const DashboardLayout = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3 md:gap-4 ml-auto">
             <UserDropdown />
           </div>
         </header>
