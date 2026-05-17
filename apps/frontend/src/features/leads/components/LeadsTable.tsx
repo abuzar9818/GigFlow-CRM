@@ -1,5 +1,5 @@
 import { ILead, LEAD_STATUS } from '@gigflow/shared';
-import { Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../utils/cn';
 
