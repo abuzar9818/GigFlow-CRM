@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { AuthLayout } from '../components/layout/AuthLayout';
 import { DashboardOverview } from '../features/dashboard/DashboardOverview';
+import { LoginForm } from '../features/auth/LoginForm';
+import { RegisterForm } from '../features/auth/RegisterForm';
 import { ProtectedRoute } from './ProtectedRoute';
 
 export const AppRoutes = () => {
@@ -14,6 +17,12 @@ export const AppRoutes = () => {
         </Route>
       </Route>
       
+      {/* Auth routes */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/register" element={<RegisterForm />} />
+      </Route>
+
       {/* Fallback route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
