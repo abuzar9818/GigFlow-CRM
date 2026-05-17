@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { DashboardOverview } from '../features/dashboard/DashboardOverview';
+import { LeadsPage } from '../features/leads/LeadsPage';
+import { AnalyticsPage } from '../features/analytics/AnalyticsPage';
 import { LoginForm } from '../features/auth/LoginForm';
 import { RegisterForm } from '../features/auth/RegisterForm';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -12,7 +14,8 @@ export const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<DashboardOverview />} />
-          <Route path="/clients" element={<div className="p-4">Clients (Coming Soon)</div>} />
+          <Route path="/leads" element={<LeadsPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/settings" element={<div className="p-4">Settings (Coming Soon)</div>} />
         </Route>
       </Route>
