@@ -24,11 +24,25 @@ export interface AnalyticsActivityItem {
   leadName: string;
   action: string;
   timestamp: string;
-  performedBy: string;
+  performedBy: string | { id?: string; name?: string; email?: string };
 }
 
 export interface AnalyticsOverviewResponse {
   stats: AnalyticsStatSet;
+  leadQuality: {
+    averageScore: number;
+    highPriority: number;
+    mediumPriority: number;
+    lowPriority: number;
+    distribution: AnalyticsChartItem[];
+    topLeads: Array<{
+      id: string;
+      name: string;
+      email: string;
+      score: number;
+      priority: 'High' | 'Medium' | 'Low';
+    }>;
+  };
   charts: {
     leadsBySource: AnalyticsChartItem[];
     leadsByStatus: AnalyticsChartItem[];

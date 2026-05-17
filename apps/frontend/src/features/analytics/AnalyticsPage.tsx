@@ -17,6 +17,7 @@ import {
 import { ArrowDownRight, ArrowUpRight, Activity, Target, TrendingUp, Users, Clock3 } from 'lucide-react';
 import { useAnalyticsOverview } from './hooks/useAnalyticsOverview';
 import { cn } from '../../utils/cn';
+import { LeadScoreBadge } from '../leads/components/LeadScoreBadge';
 
 const motionContainer = {
   hidden: { opacity: 0 },
@@ -54,10 +55,19 @@ export const AnalyticsPage = () => {
   const { data, isLoading, isError } = useAnalyticsOverview();
 
   const stats = data?.stats;
+  const leadQuality = data?.leadQuality;
   const leadsBySource = data?.charts.leadsBySource ?? [];
   const leadsByStatus = data?.charts.leadsByStatus ?? [];
   const monthlyGrowth = data?.charts.monthlyGrowth ?? [];
   const recentActivities = data?.recentActivities ?? [];
+
+  const getActivityActor = (performedBy: string | { id?: string; name?: string; email?: string }) => {
+    if (typeof performedBy === 'string') {
+      return performedBy;
+    }
+
+    return performedBy.name || performedBy.email || 'System';
+  };
 
   const summaryCards = [
     {
@@ -168,6 +178,119 @@ export const AnalyticsPage = () => {
                 </motion.div>
               );
             })}
+      </motion.section>
+
+      <motion.section variants={motionContainer} className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, index) => <AnalyticsCardSkeleton key={index} />)
+          : [
+              { label: 'Average score', value: leadQuality?.averageScore ?? 0, note: 'Lead quality benchmark' },
+              { label: 'High priority', value: leadQuality?.highPriority ?? 0, note: 'Best-fit opportunities' },
+              { label: 'Medium priority', value: leadQuality?.mediumPriority ?? 0, note: 'Warm prospects' },
+              { label: 'Low priority', value: leadQuality?.lowPriority ?? 0, note: 'Needs nurturing' },
+            ].map((card) => (
+              <motion.div
+                key={card.label}
+                variants={motionItem}
+                whileHover={{ y: -4 }}
+                className={cn(skeletonCard, 'relative overflow-hidden p-6 transition-all duration-200 hover:shadow-lg')}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+                <div className="relative">
+                  <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{card.value}</div>
+                  <p className="mt-2 text-sm text-muted-foreground">{card.note}</p>
+                </div>
+              </motion.div>
+            ))}
+      </motion.section>
+
+      <motion.section variants={motionContainer} className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <motion.div variants={motionItem} className={cn(skeletonCard, 'p-6')}>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Lead quality distribution</h2>
+              <p className="text-sm text-muted-foreground">AI-inspired scoring across your funnel.</p>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="h-72 animate-pulse rounded-2xl bg-muted/60" />
+          ) : (
+            <div className="space-y-4">
+              {leadQuality?.distribution.map((bucket) => (
+                <div key={bucket.name} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-foreground">{bucket.name}</span>
+                    <span className="text-muted-foreground">{bucket.value} leads</span>
+                  </div>
+                  <div className="h-3 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-all duration-300',
+                        bucket.name === 'High' && 'bg-emerald-500',
+                        bucket.name === 'Medium' && 'bg-amber-500',
+                        bucket.name === 'Low' && 'bg-slate-500'
+                      )}
+                      style={{
+                        width: `${stats?.totalLeads ? Math.max(8, Math.round((bucket.value / stats.totalLeads) * 100)) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        <motion.div variants={motionItem} className={cn(skeletonCard, 'p-6')}>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Top scored leads</h2>
+              <p className="text-sm text-muted-foreground">Priority-ranked opportunities.</p>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="rounded-2xl border border-border bg-background/50 p-4">
+                  <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+                  <div className="mt-2 h-3 w-28 animate-pulse rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          ) : leadQuality?.topLeads?.length ? (
+            <div className="space-y-3">
+              {leadQuality.topLeads.map((lead) => (
+                <div key={lead.id} className="rounded-2xl border border-border bg-background/60 p-4 transition-colors hover:bg-muted/40">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-foreground">{lead.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{lead.email}</p>
+                    </div>
+                    <LeadScoreBadge
+                      lead={{
+                        email: lead.email,
+                        source: 'Website' as any,
+                        status: 'New' as any,
+                        activityTimeline: [],
+                        score: lead.score,
+                        priority: lead.priority,
+                        scoreExplanation: `Top scored lead at ${lead.score}/100 (${lead.priority})`,
+                      }}
+                      compact
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border bg-background/50 p-8 text-center text-sm text-muted-foreground">
+              No scoring data yet.
+            </div>
+          )}
+        </motion.div>
       </motion.section>
 
       {isError ? (
@@ -339,7 +462,7 @@ export const AnalyticsPage = () => {
                           })}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">Performed by {activity.performedBy}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">Performed by {getActivityActor(activity.performedBy)}</p>
                     </div>
                   </div>
                 ))}
