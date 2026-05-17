@@ -42,8 +42,8 @@ export const LeadKanbanCard = ({ lead, onEdit, isOverlay = false }: LeadKanbanCa
       style={style}
       whileHover={{ y: -2 }}
       className={cn(
-        'group rounded-2xl border border-border bg-card p-4 shadow-sm transition-all duration-200',
-        'hover:border-primary/40 hover:shadow-lg',
+        'group rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm transition-all duration-200',
+        'hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5',
         isDragging && 'cursor-grabbing opacity-80 ring-2 ring-primary/30'
       )}
     >
@@ -71,6 +71,12 @@ export const LeadKanbanCard = ({ lead, onEdit, isOverlay = false }: LeadKanbanCa
           <GripVertical className="h-4 w-4" />
         </button>
       </div>
+
+      {lead.notes && (
+        <p className="mt-3 rounded-2xl bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          {lead.notes}
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <LeadScoreBadge lead={lead} compact />
