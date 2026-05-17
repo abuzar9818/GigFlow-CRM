@@ -26,7 +26,7 @@ export const LeadKanbanColumn = ({ status, leads, onEdit }: LeadKanbanColumnProp
       className={cn(
         'flex min-h-[460px] flex-col rounded-3xl border bg-card/80 p-4 shadow-sm backdrop-blur-sm transition-all duration-200',
         meta.ring,
-        isOver && 'scale-[1.01] border-primary/40 shadow-lg'
+        isOver && 'scale-[1.01] border-primary/40 shadow-lg shadow-primary/10'
       )}
     >
       <div className={cn('rounded-2xl border border-border bg-gradient-to-br p-4', meta.accent)}>
@@ -35,7 +35,7 @@ export const LeadKanbanColumn = ({ status, leads, onEdit }: LeadKanbanColumnProp
             <h3 className="text-base font-semibold text-foreground">{status}</h3>
             <p className="text-sm text-muted-foreground">{leads.length} leads</p>
           </div>
-          <span className="rounded-full bg-background/80 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm">
+          <span className="rounded-full bg-background/80 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border/60">
             {status}
           </span>
         </div>
