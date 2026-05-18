@@ -1,5 +1,5 @@
 import { LeadModel } from '../models/Lead';
-import { scoreLead } from '@gigflow/shared';
+import { scoreLead, User } from '@gigflow/shared';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -11,8 +11,13 @@ const formatMonthLabel = (key: string) => {
 };
 
 export class AnalyticsService {
-  static async getOverview() {
-    const leads = await LeadModel.find({})
+  static async getOverview(user: User) {
+    const query: any = {};
+    if (user.role === 'SALES') {
+      query.assignedTo = user.id;
+    }
+
+    const leads = await LeadModel.find(query)
       .select('name email source status createdAt activityTimeline notes assignedTo')
       .populate('activityTimeline.performedBy', 'name email')
       .sort({ createdAt: -1 })
