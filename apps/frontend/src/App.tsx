@@ -5,6 +5,8 @@ import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { AppRoutes } from './routes/AppRoutes';
 import { useEffect } from 'react';
 import { useThemeStore } from './store/useThemeStore';
+import { initSocket } from './lib/socket';
+import { toast } from 'sonner';
 
 // Initialize React Query client
 const queryClient = new QueryClient({
@@ -27,6 +29,32 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Initialize socket and subscribe to lead events
+  useEffect(() => {
+    const qc = queryClient;
+    const socket = initSocket();
+
+    const onCreated = (payload: any) => {
+      toast.success(`New lead: ${payload.name}`);
+      qc.invalidateQueries({ queryKey: ['leads'] });
+      qc.invalidateQueries({ queryKey: ['analytics-overview'] });
+    };
+
+    const onUpdated = (payload: any) => {
+      toast(`Lead updated: ${payload.name}`);
+      qc.invalidateQueries({ queryKey: ['leads'] });
+      qc.invalidateQueries({ queryKey: ['analytics-overview'] });
+    };
+
+    socket.on('lead:created', onCreated);
+    socket.on('lead:updated', onUpdated);
+
+    return () => {
+      socket.off('lead:created', onCreated);
+      socket.off('lead:updated', onUpdated);
+    };
+  }, []);
 
   return (
     <GlobalErrorBoundary>

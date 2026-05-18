@@ -36,12 +36,12 @@ export const DashboardLayout = () => {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card p-4 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:transform-none",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card p-4 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:transform-none border-l-4 border-l-primary",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
         <div className="flex items-center justify-between mb-8">
-          <div className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
+          <div className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary to-orange-500">
             GigFlow CRM
           </div>
           <Button variant="ghost" size="sm" onClick={() => setIsSidebarOpen(false)} className="md:hidden">
