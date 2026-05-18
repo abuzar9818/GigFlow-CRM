@@ -25,7 +25,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   // Force registration role to SALES only, ignoring incoming role.
   const user = await UserModel.create({ name, email, password, role: 'SALES' });
-  const { accessToken, refreshToken } = generateTokens(user);
+  const { accessToken, refreshToken } = generateTokens({ id: user.id as string, email: user.email, role: user.role });
 
   user.refreshToken = refreshToken;
   await user.save();
@@ -53,7 +53,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid email or password');
   }
 
-  const { accessToken, refreshToken } = generateTokens(user);
+  const { accessToken, refreshToken } = generateTokens({ id: user.id as string, email: user.email, role: user.role });
 
   user.refreshToken = refreshToken;
   await user.save();
