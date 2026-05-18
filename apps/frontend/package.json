@@ -14,6 +14,8 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@gigflow/shared": "*",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
     "@hookform/resolvers": "^3.3.4",
     "@tanstack/react-query": "^5.32.0",
     "axios": "^1.6.8",
@@ -33,8 +35,6 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vitejs/plugin-react": "^4.2.1",
