@@ -36,10 +36,10 @@ export const DashboardLayout = () => {
         {isSidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black z-40 md:hidden"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
           />
         )}
       </AnimatePresence>
@@ -47,7 +47,7 @@ export const DashboardLayout = () => {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card p-4 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:transform-none border-l-4 border-l-primary",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card/95 backdrop-blur-xl p-4 flex flex-col transform transition-transform duration-200 ease-in-out md:relative md:transform-none border-l-4 border-l-primary",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
