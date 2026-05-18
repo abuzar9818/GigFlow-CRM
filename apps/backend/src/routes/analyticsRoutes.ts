@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { verifyToken } from '../middlewares/authMiddleware';
+import { authenticateUser } from '../middlewares/authMiddleware';
 import { getAnalyticsOverview } from '../controllers/analyticsController';
 
 const router = Router();
 
-router.use(verifyToken);
+router.use(authenticateUser);
 
 router.get('/overview', getAnalyticsOverview);
 
