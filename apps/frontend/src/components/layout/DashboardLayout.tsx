@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { useThemeStore } from '../../store/useThemeStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { Moon, Sun, LayoutDashboard, Settings, Users, BarChart3, Menu, X, Search } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { UserDropdown } from './UserDropdown';
@@ -9,14 +10,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const DashboardLayout = () => {
   const { isDarkMode, toggleTheme } = useThemeStore();
+  const { user } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Overview' },
+  const adminNavItems = [
+    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/leads', icon: Users, label: 'Leads' },
     { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+    { to: '/team', icon: Users, label: 'Team' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
+
+  const salesNavItems = [
+    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/leads', icon: Users, label: 'My Leads' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const navItems = user?.role === 'ADMIN' ? adminNavItems : salesNavItems;
 
   return (
     <div className="min-h-screen bg-background flex transition-colors duration-200">
