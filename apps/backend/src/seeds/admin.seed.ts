@@ -12,7 +12,7 @@ const seedAdmin = async () => {
   try {
     const ADMIN_NAME = process.env.ADMIN_NAME || 'Super Admin';
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@gigflow.com';
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD';
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
     const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/gigflow';
 
     console.log('Connecting to database...');
