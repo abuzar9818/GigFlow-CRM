@@ -5,24 +5,34 @@ import { LeadsFilters } from './components/LeadsFilters';
 import { CreateLeadModal, EditLeadModal, DeleteLeadModal } from './components/LeadModals';
 import { LeadKanbanBoard } from './components/LeadKanbanBoard';
 import { useLeads } from './hooks/useLeads';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../lib/axios';
-import { CreateLeadInput, UpdateLeadInput, ILead, LeadStatus, LeadSource } from '@gigflow/shared';
-import { toast } from 'sonner';
+import { CreateLeadInput, UpdateLeadInput, ILead, LeadStatus } from '@gigflow/shared';
 import { motion } from 'framer-motion';
 import { cn } from '../../utils/cn';
+import { useLeadsFilters } from './hooks/useLeadsFilters';
+import { useLeadMutations } from './hooks/useLeadMutations';
 
 export const LeadsPage = () => {
-  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'pipeline' | 'table'>('pipeline');
-  
-  // Filter state
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState<LeadStatus | ''>('');
-  const [source, setSource] = useState<LeadSource | ''>('');
-  const [sort, setSort] = useState('latest');
-  const [page, setPage] = useState(1);
+
+  const {
+    filters,
+    setSearch,
+    setDebouncedSearch,
+    setStatus,
+    setSource,
+    setSort,
+    setPage,
+    clearFilters,
+    hasFilters,
+  } = useLeadsFilters();
+
+  const {
+    createMutation,
+    updateMutation,
+    deleteMutation,
+    moveMutation,
+  } = useLeadMutations();
+
   const limit = 10;
 
   // Modal state
@@ -34,105 +44,23 @@ export const LeadsPage = () => {
   // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearch(search);
+      setDebouncedSearch(filters.search);
       setPage(1); // Reset to page 1 on search
     }, 500);
     return () => clearTimeout(handler);
-  }, [search]);
+  }, [filters.search, setDebouncedSearch, setPage]);
 
-  const clearFilters = () => {
-    setSearch('');
-    setDebouncedSearch('');
-    setStatus('');
-    setSource('');
-    setSort('latest');
-    setPage(1);
-  };
-
-  const pipelineQuery = useLeads({
-    page: 1,
-    limit: 200,
-    status,
-    source,
-    search: debouncedSearch,
-    sort: 'latest',
+  const activeQuery = useLeads({
+    page: viewMode === 'pipeline' ? 1 : filters.page,
+    limit: viewMode === 'pipeline' ? 200 : limit,
+    status: filters.status,
+    source: filters.source,
+    search: filters.debouncedSearch,
+    sort: viewMode === 'pipeline' ? 'latest' : filters.sort,
   });
 
-  const tableQuery = useLeads({
-    page,
-    limit,
-    status,
-    source,
-    search: debouncedSearch,
-    sort,
-  });
-
-  const activeQuery = viewMode === 'pipeline' ? pipelineQuery : tableQuery;
   const leads = activeQuery.data?.data?.leads || [];
-  const pagination = tableQuery.data?.data?.pagination || { page: 1, totalPages: 1, total: 0 };
-
-  const hasFilters = Boolean(search || status || source || sort !== 'latest');
-
-  const updateCachedLeads = (updater: (lead: ILead) => ILead) => {
-    queryClient.setQueriesData({ queryKey: ['leads'] }, (oldData: any) => {
-      if (!oldData?.data?.leads) return oldData;
-
-      return {
-        ...oldData,
-        data: {
-          ...oldData.data,
-          leads: oldData.data.leads.map((lead: ILead) => updater(lead)),
-        },
-      };
-    });
-  };
-
-  // Mutations
-  const createMutation = useMutation({
-    mutationFn: (newLead: CreateLeadInput) => api.post('/leads', newLead),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      toast.success('Lead created successfully');
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateLeadInput }) => api.patch(`/leads/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      toast.success('Lead updated successfully');
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/leads/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      toast.success('Lead deleted successfully');
-    },
-  });
-
-  const moveMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: LeadStatus }) => api.patch(`/leads/${id}`, { status }),
-    onMutate: async ({ id, status }) => {
-      await queryClient.cancelQueries({ queryKey: ['leads'] });
-      const previousQueries = queryClient.getQueriesData({ queryKey: ['leads'] });
-
-      updateCachedLeads((lead) => (lead.id === id ? { ...lead, status } : lead));
-
-      return { previousQueries };
-    },
-    onError: (_error, _variables, context) => {
-      context?.previousQueries.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
-      });
-      toast.error('Failed to move lead. Please try again.');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      toast.success('Lead status updated');
-    },
-  });
+  const pagination = activeQuery.data?.data?.pagination || { page: 1, totalPages: 1, total: 0 };
 
   const handleCreateSubmit = async (data: CreateLeadInput) => {
     await createMutation.mutateAsync(data);
@@ -194,13 +122,13 @@ export const LeadsPage = () => {
       </div>
 
       <LeadsFilters
-        search={search}
+        search={filters.search}
         onSearchChange={setSearch}
-        status={status}
+        status={filters.status}
         onStatusChange={setStatus}
-        source={source}
+        source={filters.source}
         onSourceChange={setSource}
-        sort={sort}
+        sort={filters.sort}
         onSortChange={setSort}
         onClearFilters={clearFilters}
         hasActiveFilters={hasFilters}
@@ -239,7 +167,7 @@ export const LeadsPage = () => {
                       variant="secondary"
                       size="sm"
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
+                      disabled={filters.page === 1}
                     >
                       Previous
                     </Button>
@@ -247,7 +175,7 @@ export const LeadsPage = () => {
                       variant="secondary"
                       size="sm"
                       onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      disabled={page === pagination.totalPages}
+                      disabled={filters.page === pagination.totalPages}
                     >
                       Next
                     </Button>
