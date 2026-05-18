@@ -1,5 +1,5 @@
 import { LeadModel, ILeadDocument } from '../models/Lead';
-import { CreateLeadInput, UpdateLeadInput, LeadStatus, LeadSource } from '@gigflow/shared';
+import { CreateLeadInput, UpdateLeadInput, LeadStatus, LeadSource, User } from '@gigflow/shared';
 import { ApiError } from '../utils/ApiError';
 import { httpStatus } from '../constants/httpStatus';
 import mongoose from 'mongoose';
@@ -60,9 +60,13 @@ export class LeadService {
     source?: LeadSource;
     search?: string;
     sort?: string;
-  }) {
+  }, user: User) {
     const { page = 1, limit = 10, status, source, search, sort } = queryParams;
     const query: any = {};
+
+    if (user.role === 'SALES') {
+      query.assignedTo = user.id;
+    }
 
     // Filtering
     if (status) query.status = status;
@@ -101,21 +105,31 @@ export class LeadService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-      },
-    };
-  }
+      },, user: User): Promise<ILeadDocument> {
+    const query: any = { _id: id };
+    if (user.role === 'SALES') {
+      query.assignedTo = user.id;
+    }
 
-  static async getLeadById(id: string): Promise<ILeadDocument> {
-    const lead = await LeadModel.findById(id)
+    const lead = await LeadModel.findOne(query)
       .populate('assignedTo', 'name email')
       .populate('activityTimeline.performedBy', 'name email');
       
     if (!lead) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found');
+      throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found or unauthorized');
     }
     return decorateLead(lead) as ILeadDocument;
   }
 
+  static async updateLead(id: string, data: UpdateLeadInput, user: User, activityEvents: any[] = []): Promise<ILeadDocument> {
+    const query: any = { _id: id };
+    if (user.role === 'SALES') {
+      query.assignedTo = user.id;
+    }
+
+    const lead = await LeadModel.findOne(query);
+    if (!lead) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found or unauthorize
   static async updateLead(id: string, data: UpdateLeadInput, performedBy: string, activityEvents: any[] = []): Promise<ILeadDocument> {
     const lead = await LeadModel.findById(id);
     if (!lead) {
@@ -134,7 +148,7 @@ export class LeadService {
       lead.activityTimeline.push(
         ...activityEvents.map((event) => ({
           ...event,
-          performedBy: new mongoose.Types.ObjectId(performedBy) as any,
+          performedBy: new mongoose.Types.ObjectId(user.id) as any,
         }))
       );
     }
@@ -148,7 +162,7 @@ export class LeadService {
       const { emit } = await import('../socket');
       const payload = decorateLead(savedLead);
       emit('lead:updated', payload);
-      if (performedBy) emit('user:' + performedBy + ':lead:updated', payload, `user:${performedBy}`);
+      if (user.id) emit('user:' + user.id + ':lead:updated', payload, `user:${user.id}`);
       if (savedLead.assignedTo) emit('user:' + String(savedLead.assignedTo) + ':lead:assigned', payload, `user:${String(savedLead.assignedTo)}`);
     } catch (e) {
       // ignore socket errors
