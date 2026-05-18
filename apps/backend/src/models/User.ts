@@ -14,7 +14,7 @@ const userSchema = new Schema<IUserDocument>(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
-    role: { type: String, enum: ['ADMIN', 'SALES_USER'], default: 'SALES_USER' },
+    role: { type: String, enum: ['ADMIN', 'SALES'], default: 'SALES' },
     refreshToken: { type: String, select: false },
   },
   {
