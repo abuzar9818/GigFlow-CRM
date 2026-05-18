@@ -32,6 +32,14 @@ export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps)
   const isEditing = !!lead;
   const schema = isEditing ? UpdateLeadSchema : CreateLeadSchema;
 
+  const getDefaultValues = (lead: any) => {
+    if (!lead) return { name: '', email: '', status: 'New', source: 'Website', notes: '' };
+    return {
+      ...lead,
+      assignedTo: lead.assignedTo ? (typeof lead.assignedTo === 'object' ? (lead.assignedTo.id || lead.assignedTo._id) : lead.assignedTo) : ''
+    };
+  };
+
   const {
     register,
     handleSubmit,
@@ -39,25 +47,11 @@ export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps)
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: lead || {
-      name: '',
-      email: '',
-      status: 'New',
-      source: 'Website',
-      notes: '',
-    },
+    defaultValues: getDefaultValues(lead),
   });
 
   useEffect(() => {
-    reset(
-      lead || {
-        name: '',
-        email: '',
-        status: 'New',
-        source: 'Website',
-        notes: '',
-      }
-    );
+    reset(getDefaultValues(lead));
   }, [lead, reset]);
 
   return (
