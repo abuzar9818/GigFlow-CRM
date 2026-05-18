@@ -105,7 +105,11 @@ export class LeadService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-      },, user: User): Promise<ILeadDocument> {
+      },
+    };
+  }
+
+  static async getLeadById(id: string, user: User): Promise<ILeadDocument> {
     const query: any = { _id: id };
     if (user.role === 'SALES') {
       query.assignedTo = user.id;
@@ -128,15 +132,11 @@ export class LeadService {
     }
 
     const lead = await LeadModel.findOne(query);
-    if (!lead) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found or unauthorize
-  static async updateLead(id: string, data: UpdateLeadInput, performedBy: string, activityEvents: any[] = []): Promise<ILeadDocument> {
-    const lead = await LeadModel.findById(id);
-    if (!lead) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found');
-    }
+      if (!lead) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Lead not found or unauthorized');
+      }
 
-    // Check if email is being updated and if it conflicts
+      // Check if email is being updated and if it conflicts
     if (data.email && data.email !== lead.email) {
       const existingLead = await LeadModel.findOne({ email: data.email });
       if (existingLead) {
