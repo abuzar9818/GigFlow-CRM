@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspace=@gigflow/shared && npm run build --workspace=@gigflow/backend && npm run build --workspace=@gigflow/frontend",
     "start": "npm run start --workspace=apps/backend",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""

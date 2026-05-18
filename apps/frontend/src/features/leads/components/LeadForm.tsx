@@ -10,7 +10,7 @@ import api from '../../../lib/axios';
 
 interface LeadFormProps {
   lead?: ILead | null;
-  onSubmit: (data: CreateLeadInput | UpdateLeadInput) => Promise<void>;
+  onSubmit: (data: any) => Promise<void>;
   isLoading?: boolean;
   onCancel?: () => void;
 }
@@ -71,7 +71,7 @@ export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps)
         />
         {errors.name && (
           <p id="name-error" className="mt-1 text-xs text-red-500">
-            {errors.name.message}
+            {errors.name.message as string}
           </p>
         )}
       </div>
@@ -92,7 +92,7 @@ export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps)
         />
         {errors.email && (
           <p id="email-error" className="mt-1 text-xs text-red-500">
-            {errors.email.message}
+            {errors.email.message as string}
           </p>
         )}
       </div>
@@ -176,7 +176,7 @@ export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps)
       <div className="flex gap-3 pt-4">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={onCancel}
           disabled={isLoading}
         >
