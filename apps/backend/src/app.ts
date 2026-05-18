@@ -32,7 +32,10 @@ app.use(cookieParser());
 
 // enable cors
 app.use(cors({
-  origin: env.clientUrl,
+  origin: [
+    env.clientUrl,
+    "http://localhost:5173"
+  ],
   credentials: true,
 }));
 app.options('*', cors());

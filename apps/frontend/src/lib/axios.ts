@@ -4,9 +4,13 @@ import { toast } from 'sonner';
 import { API_PREFIX } from '@gigflow/shared';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || API_PREFIX,
+
+  baseURL: `${import.meta.env.VITE_API_URL}${API_PREFIX}`,
+
   timeout: 10000,
+
   withCredentials: true,
+
 });
 
 api.interceptors.request.use(

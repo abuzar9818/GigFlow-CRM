@@ -117,10 +117,7 @@ export const UserDropdown = () => {
 
             <div className="mx-3 mb-2 h-px bg-border" />
 
-            <div className="border-b border-border px-4 py-3 md:hidden">
-              <div className="font-medium">{user?.name || 'User'}</div>
-              <div className="text-muted-foreground text-xs">{user?.email || 'user@example.com'}</div>
-            </div>
+
             <button
               onClick={() => { setIsOpen(false); navigate('/profile'); }}
               className="flex w-full items-center px-4 py-3 text-sm text-foreground transition-colors hover:bg-muted/80"
