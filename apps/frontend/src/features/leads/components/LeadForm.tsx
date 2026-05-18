@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateLeadInput, UpdateLeadInput, ILead } from '@gigflow/shared';
+import { ILead } from '@gigflow/shared';
 import { CreateLeadSchema, UpdateLeadSchema } from '@gigflow/shared';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';

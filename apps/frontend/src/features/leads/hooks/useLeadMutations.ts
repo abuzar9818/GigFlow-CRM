@@ -3,15 +3,9 @@ import { CreateLeadInput, UpdateLeadInput, ILead, LeadStatus } from '@gigflow/sh
 import api from '../../../lib/axios';
 import { toast } from 'sonner';
 
-interface UseLeadMutationsReturn {
-  createMutation: ReturnType<typeof useMutation>;
-  updateMutation: ReturnType<typeof useMutation>;
-  deleteMutation: ReturnType<typeof useMutation>;
-  moveMutation: ReturnType<typeof useMutation>;
-  isLoading: boolean;
-}
 
-export const useLeadMutations = (): UseLeadMutationsReturn => {
+
+export const useLeadMutations = () => {
   const queryClient = useQueryClient();
 
   const updateCachedLeads = (updater: (lead: ILead) => ILead) => {

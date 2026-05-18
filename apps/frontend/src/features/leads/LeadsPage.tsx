@@ -129,7 +129,7 @@ export const LeadsPage = () => {
         source={filters.source}
         onSourceChange={setSource}
         sort={filters.sort}
-        onSortChange={setSort}
+        onSortChange={(value: string) => setSort(value as 'latest' | 'score' | 'name')}
         onClearFilters={clearFilters}
         hasActiveFilters={hasFilters}
       />
