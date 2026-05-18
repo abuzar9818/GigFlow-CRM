@@ -24,7 +24,7 @@ export const validateRequest = (schema: AnyZodObject) => {
 };
 
 // Verify JWT Middleware
-export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -52,7 +52,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 };
 
 // Role Authorization Middleware
-export const requireRole = (...roles: string[]) => {
+export const authorizeRoles = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return next(new ApiError(httpStatus.FORBIDDEN, 'You do not have permission to perform this action'));
