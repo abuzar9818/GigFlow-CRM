@@ -42,6 +42,9 @@
 
     --border: 217.2 32.6% 20%;
     
+    --card: 217.2 32.6% 12%;
+    --card-foreground: 210 40% 98%;
+
     /* Chart colors for dark mode */
     --chart-bg: 217.2 32.6% 13%;
     --chart-grid: 217.2 32.6% 22%;
