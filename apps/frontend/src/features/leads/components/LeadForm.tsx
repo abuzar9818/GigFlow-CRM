@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CreateLeadInput, UpdateLeadInput, ILead } from '@gigflow/shared';
 import { CreateLeadSchema, UpdateLeadSchema } from '@gigflow/shared';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
+import { useAuthStore } from '../../../store/useAuthStore';
+import api from '../../../lib/axios';
 
 interface LeadFormProps {
   lead?: ILead | null;
@@ -17,6 +19,16 @@ const INPUT_CLASSES = 'w-full rounded-xl border border-border bg-background px-4
 const LABEL_CLASSES = 'block text-sm font-medium text-foreground mb-2';
 
 export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps) => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/auth/users').then(({ data }) => setUsers(data.data)).catch(console.error);
+    }
+  }, [isAdmin]);
+
   const isEditing = !!lead;
   const schema = isEditing ? UpdateLeadSchema : CreateLeadSchema;
 
@@ -145,6 +157,26 @@ export const LeadForm = ({ lead, onSubmit, isLoading, onCancel }: LeadFormProps)
           {...register('notes')}
         />
       </div>
+
+      {isAdmin && (
+        <div>
+          <label htmlFor="assignedTo" className={LABEL_CLASSES}>
+            Assigned To
+          </label>
+          <select
+            id="assignedTo"
+            className={INPUT_CLASSES}
+            disabled={isLoading}
+            {...register('assignedTo')}
+            aria-label="Assign to user"
+          >
+            <option value="">Unassigned</option>
+            {users.map((u) => (
+              <option key={u.id || u._id} value={u.id || u._id}>{u.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3 pt-4">
