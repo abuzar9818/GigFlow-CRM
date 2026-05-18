@@ -2,6 +2,7 @@ import { ILead, LEAD_STATUS } from '@gigflow/shared';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { cn } from '../../../utils/cn';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 interface LeadsTableProps {
   leads: ILead[];
@@ -11,6 +12,9 @@ interface LeadsTableProps {
 }
 
 export const LeadsTable = ({ leads, isLoading, onEdit, onDelete }: LeadsTableProps) => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case LEAD_STATUS.NEW:
@@ -81,9 +85,11 @@ export const LeadsTable = ({ leads, isLoading, onEdit, onDelete }: LeadsTablePro
                   <Button variant="ghost" size="sm" onClick={() => onEdit(lead)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onDelete(lead)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
+                  {isAdmin && (
+                    <Button variant="ghost" size="sm" onClick={() => onDelete(lead)}>
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}
