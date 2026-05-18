@@ -122,3 +122,10 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
     new ApiResponse(httpStatus.OK, { user: req.user }, 'Current user fetched')
   );
 });
+
+export const getUsers = asyncHandler(async (req: Request, res: Response) => {
+  const users = await UserModel.find().select('-password -refreshToken -__v');
+  res.status(httpStatus.OK).json(
+    new ApiResponse(httpStatus.OK, users, 'Users fetched successfully')
+  );
+});
