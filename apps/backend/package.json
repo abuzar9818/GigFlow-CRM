@@ -6,7 +6,8 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "seed:admin": "tsx src/seeds/admin.seed.ts"
   },
   "dependencies": {
     "@gigflow/shared": "*",
