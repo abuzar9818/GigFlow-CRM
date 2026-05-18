@@ -45,4 +45,11 @@ leadSchema.index({ status: 1 });
 leadSchema.index({ assignedTo: 1 });
 leadSchema.index({ createdAt: -1 });
 
+// Composite indexes for common queries
+leadSchema.index({ status: 1, createdAt: -1 }); // Filter by status, sort by date
+leadSchema.index({ source: 1, createdAt: -1 }); // Filter by source, sort by date
+leadSchema.index({ assignedTo: 1, status: 1 }); // Filter by assignee and status
+leadSchema.index({ email: 1 }); // Fast email lookup
+leadSchema.index({ name: 'text' }); // Full-text search on name
+
 export const LeadModel = mongoose.model<ILeadDocument>('Lead', leadSchema);

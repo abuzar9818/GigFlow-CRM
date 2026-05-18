@@ -8,22 +8,24 @@ import { env } from '../config/env';
 import { UserModel } from '../models/User';
 import { LoginInput, RegisterInput } from '@gigflow/shared';
 
-const generateTokens = (userId: string) => {
-  const accessToken = jwt.sign({ id: userId }, env.jwt.secret, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: userId }, env.jwt.secret, { expiresIn: '7d' });
+const generateTokens = (user: { id: string; email: string; role: string }) => {
+  const payload = { id: user.id, email: user.email, role: user.role };
+  const accessToken = jwt.sign(payload, env.jwt.secret, { expiresIn: '15m' });
+  const refreshToken = jwt.sign(payload, env.jwt.secret, { expiresIn: '7d' });
   return { accessToken, refreshToken };
 };
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, password, role } = req.body as RegisterInput;
+  const { name, email, password } = req.body as RegisterInput;
 
   const existingUser = await UserModel.findOne({ email });
   if (existingUser) {
     throw new ApiError(httpStatus.CONFLICT, 'Email already in use');
   }
 
-  const user = await UserModel.create({ name, email, password, role });
-  const { accessToken, refreshToken } = generateTokens(user.id);
+  // Force registration role to SALES only, ignoring incoming role.
+  const user = await UserModel.create({ name, email, password, role: 'SALES' });
+  const { accessToken, refreshToken } = generateTokens(user);
 
   user.refreshToken = refreshToken;
   await user.save();
@@ -51,7 +53,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid email or password');
   }
 
-  const { accessToken, refreshToken } = generateTokens(user.id);
+  const { accessToken, refreshToken } = generateTokens(user);
 
   user.refreshToken = refreshToken;
   await user.save();
@@ -104,7 +106,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
       throw new ApiError(httpStatus.FORBIDDEN, 'Invalid refresh token payload');
     }
 
-    const accessToken = jwt.sign({ id: user.id }, env.jwt.secret, { expiresIn: '15m' });
+    const accessToken = jwt.sign({ id: user.id, email: user.email, role: user.role }, env.jwt.secret, { expiresIn: '15m' });
     res.status(httpStatus.OK).json(
       new ApiResponse(httpStatus.OK, { accessToken }, 'Token refreshed successfully')
     );
