@@ -1,12 +1,10 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateLeadSchema, CreateLeadInput, UpdateLeadSchema, UpdateLeadInput, LEAD_STATUS, LEAD_SOURCE, ILead } from '@gigflow/shared';
+import { CreateLeadInput, UpdateLeadInput, ILead } from '@gigflow/shared';
 import { Button } from '../../../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
 import { LeadActivityTimeline } from './LeadActivityTimeline';
 import { LeadScoreBadge } from './LeadScoreBadge';
+import { LeadForm } from './LeadForm';
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,13 +17,8 @@ interface CreateModalProps extends ModalProps {
 }
 
 export const CreateLeadModal = ({ isOpen, onClose, onSubmit, isLoading }: CreateModalProps) => {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<CreateLeadInput>({
-    resolver: zodResolver(CreateLeadSchema),
-  });
-
   const handleFormSubmit = async (data: CreateLeadInput) => {
     await onSubmit(data);
-    reset();
     onClose();
   };
 
@@ -49,71 +42,13 @@ export const CreateLeadModal = ({ isOpen, onClose, onSubmit, isLoading }: Create
               </Button>
             </div>
 
-            <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 px-5 py-5 lg:px-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Name</label>
-                  <input
-                    {...register('name')}
-                    className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  />
-                  {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Email</label>
-                  <input
-                    {...register('email')}
-                    type="email"
-                    className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  />
-                  {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Status</label>
-                  <select
-                    {...register('status')}
-                    className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  >
-                    {Object.values(LEAD_STATUS).map((val) => (
-                      <option key={val} value={val}>{val}</option>
-                    ))}
-                  </select>
-                  {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status.message}</p>}
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Source</label>
-                  <select
-                    {...register('source')}
-                    className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  >
-                    <option value="">Select Source</option>
-                    {Object.values(LEAD_SOURCE).map((val) => (
-                      <option key={val} value={val}>{val}</option>
-                    ))}
-                  </select>
-                  {errors.source && <p className="mt-1 text-xs text-red-500">{errors.source.message}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">Notes</label>
-                <textarea
-                  {...register('notes')}
-                  className="min-h-28 w-full rounded-2xl border border-border bg-background/80 px-3 py-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  rows={4}
-                />
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
-                <Button type="submit" isLoading={isLoading}>Create Lead</Button>
-              </div>
-            </form>
+            <div className="px-5 py-5 lg:px-6">
+              <LeadForm
+                onSubmit={handleFormSubmit}
+                isLoading={isLoading}
+                onCancel={onClose}
+              />
+            </div>
           </motion.div>
         </div>
       )}
@@ -128,25 +63,9 @@ interface EditModalProps extends ModalProps {
 }
 
 export const EditLeadModal = ({ isOpen, onClose, lead, onSubmit, isLoading }: EditModalProps) => {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<UpdateLeadInput>({
-    resolver: zodResolver(UpdateLeadSchema),
-  });
-
-  useEffect(() => {
+  const handleFormSubmit = async (data: CreateLeadInput | UpdateLeadInput) => {
     if (lead) {
-      reset({
-        name: lead.name,
-        email: lead.email,
-        status: lead.status,
-        source: lead.source,
-        notes: lead.notes,
-      });
-    }
-  }, [lead, reset]);
-
-  const handleFormSubmit = async (data: UpdateLeadInput) => {
-    if (lead) {
-      await onSubmit(lead.id, data);
+      await onSubmit(lead.id, data as UpdateLeadInput);
       onClose();
     }
   };
@@ -175,68 +94,14 @@ export const EditLeadModal = ({ isOpen, onClose, lead, onSubmit, isLoading }: Ed
             </div>
 
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
-              <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 p-5 lg:p-6">
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Name</label>
-                  <input
-                    {...register('name')}
-                    className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  />
-                  {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Email</label>
-                  <input
-                    {...register('email')}
-                    type="email"
-                    className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                  />
-                  {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Status</label>
-                    <select
-                      {...register('status')}
-                      className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                    >
-                      {Object.values(LEAD_STATUS).map((val) => (
-                        <option key={val} value={val}>{val}</option>
-                      ))}
-                    </select>
-                    {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status.message}</p>}
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Source</label>
-                    <select
-                      {...register('source')}
-                      className="h-11 w-full rounded-2xl border border-border bg-background/80 px-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                    >
-                      {Object.values(LEAD_SOURCE).map((val) => (
-                        <option key={val} value={val}>{val}</option>
-                      ))}
-                    </select>
-                    {errors.source && <p className="mt-1 text-xs text-red-500">{errors.source.message}</p>}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Notes</label>
-                  <textarea
-                    {...register('notes')}
-                    className="min-h-32 w-full rounded-2xl border border-border bg-background/80 px-3 py-3 text-sm shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                    rows={4}
-                  />
-                </div>
-
-                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
-                  <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
-                  <Button type="submit" isLoading={isLoading}>Save Changes</Button>
-                </div>
-              </form>
+              <div className="p-5 lg:p-6">
+                <LeadForm
+                  lead={lead}
+                  onSubmit={handleFormSubmit}
+                  isLoading={isLoading}
+                  onCancel={onClose}
+                />
+              </div>
 
               <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0 lg:p-6">
                 <div className="mb-4">
