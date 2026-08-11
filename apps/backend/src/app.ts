@@ -15,6 +15,9 @@ import { swaggerSpec } from './docs/swagger';
 
 export const app: Express = express();
 
+// Render sits behind a proxy, so trust its forwarded headers.
+app.set('trust proxy', 1);
+
 if (env.env !== 'test') {
   app.use(morgan.successHandler);
   app.use(morgan.errorHandler);
@@ -46,7 +49,8 @@ app.get('/api-docs.json', (_req, res) => {
   res.json(swaggerSpec);
 });
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+app.use('/api-docs', swaggerUi.serve);
+app.get(['/api-docs', '/api-docs/'], swaggerUi.setup(swaggerSpec, {
   explorer: true,
   customSiteTitle: 'GigFlow CRM API Docs',
 }));
