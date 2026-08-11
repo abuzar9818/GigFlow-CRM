@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import * as morgan from './middlewares/morgan';
 import { apiLimiter } from './middlewares/rateLimiter';
@@ -10,6 +11,7 @@ import { ApiError } from './utils/ApiError';
 import { httpStatus } from './constants/httpStatus';
 import routes from './routes';
 import { API_PREFIX } from '@gigflow/shared';
+import { swaggerSpec } from './docs/swagger';
 
 export const app: Express = express();
 
@@ -39,6 +41,15 @@ app.use(cors({
   credentials: true,
 }));
 app.options('*', cors());
+
+app.get('/api-docs.json', (_req, res) => {
+  res.json(swaggerSpec);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customSiteTitle: 'GigFlow CRM API Docs',
+}));
 
 // limit repeated failed requests to endpoints
 if (env.env === 'production') {

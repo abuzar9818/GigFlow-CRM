@@ -190,3 +190,8 @@ VITE_API_URL=http://localhost:5000/api/v1
 Built to redefine Sales pipeline management seamlessly.
 MIT License - see LICENSE file. 
 Resources powered by Recharts, dnd-kit, and Tailwind CSS standardizations.
+
+## API Documentation
+
+Run the backend and open the interactive Swagger UI at `http://localhost:5000/api-docs`.
+The raw OpenAPI JSON is available at `http://localhost:5000/api-docs.json`.
